@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "3DEP-Lidar"
+version = "0.0.1"
+authors = [
+  { name="Tewodros Kederalah", email="teddylnk1@gmail.com" },
+]
+description = "A package for easily loading and visualizing the USGS 3DEP point cloud data"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pdal ==3.1.2",
+    "laspy ==2.1.2",
+    "geopandas ==0.11.0",
+]
+
+[tool.setuptools.packages.find]
+# scanning for namespace packages is true by default in pyproject.toml, so
+# you do NOT need to include the following line.
+namespaces = true
+where = ["src"]
+
+[tool.setuptools.package-data]
+agritech_lidar = ["data/*.txt"]
+
+[project.urls]
+"Homepage" = "https://github.com/teddyk251/3DEP-Lidar-pkg"
+"Bug Tracker" = "https://github.com/teddyk251/3DEP-Lidar-pkg/issues"
