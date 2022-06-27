@@ -262,6 +262,7 @@ class DataFetcher():
         None
         """
         try:
+            self.build_pipeline()
             self.data_count = self.pipeline.execute()
             self.create_cloud_points()
             self.original_cloud_points = self.cloud_points
