@@ -4,8 +4,8 @@ import sys
 from shapely.geometry import Polygon
 import pandas as pd
 import unittest
-sys.path.append(os.path.abspath(os.path.join('../src')))
-from data_fetcher import DataFetcher
+# sys.path.append(os.path.abspath(os.path.join('../src')))
+from src.data_fetcher import DataFetcher
 # sys.path.append(os.path.abspath(os.path.join('../data')))
 
 
