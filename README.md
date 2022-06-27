@@ -4,8 +4,12 @@
 <hr>
 
 # Table of Contents
+* [Documentation](#documentation)
 * [Description](#description)
 * [How to Install](#install)
+
+# <a name='documentaion'></a>Code Documentation
+https://teddyk251.github.io/3DEP-Lidar-pkg/
 
 # <a name='description'></a>Problem Description
 
