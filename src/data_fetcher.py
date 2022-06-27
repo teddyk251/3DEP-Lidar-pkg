@@ -112,12 +112,10 @@ class DataFetcher():
             locations_list = []
             for location in locations:
                 locations_list.append(location.strip('\n').strip('/'))
-        # print(locations_list)
         if(region in locations_list):
             return region
         else:
             print("Region Not Available")
-            # logger.error('Region Not Available')
             sys.exit(1)
 
     def get_region_from_bounds(self, minx: float, miny: float, maxx: float, maxy: float, indx: int = 1) -> str:
@@ -142,7 +140,7 @@ class DataFetcher():
             Access url to retrieve the data from the AWS dataset
         """
 
-        aws_dataset_info_csv = pd.read_csv('./aws_dataset.csv')
+        aws_dataset_info_csv = pd.read_csv('../data/dataset_metadata.csv')
         for index, bound in enumerate(aws_dataset_info_csv['Bound/s'].to_list()):
             bound = bound.strip('][').replace(
                 ']', '').replace('[', '').split(',')
@@ -249,26 +247,6 @@ class DataFetcher():
             print('Failed to create cloud points')
             sys.exit(1)
 
-    def fetch_data(self):
-        """Fetches Data from the AWS Dataset, builds the cloud points from it and 
-        assignes and stores the original cloud points and original elevation geopandas dataframe.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-        """
-        try:
-            self.data_count = self.pipeline.execute()
-            self.create_cloud_points()
-            self.original_cloud_points = self.cloud_points
-            self.original_elevation_geodf = self.get_elevation_geodf()
-        except Exception as e:
-            sys.exit(1)
-
     def get_elevation_geodf(self) -> gpd.GeoDataFrame:
         """Calculates and returns a geopandas elevation dataframe from the cloud points generated before.
 
@@ -296,3 +274,24 @@ class DataFetcher():
         self.elevation_geodf = elevation
 
         return self.elevation_geodf
+
+    def fetch_data(self):
+        """Fetches Data from the AWS Dataset, builds the cloud points from it and 
+        assignes and stores the original cloud points and original elevation geopandas dataframe.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        try:
+            self.build_pipeline()
+            self.data_count = self.pipeline.execute()
+            self.create_cloud_points()
+            self.original_cloud_points = self.cloud_points
+            self.original_elevation_geodf = self.get_elevation_geodf()
+        except Exception as e:
+            sys.exit(1)
