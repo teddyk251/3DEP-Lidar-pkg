@@ -33,8 +33,7 @@ class DataFetcher():
         else:
             self.region = self.get_region_from_bounds(minx, miny, maxx, maxy)
 
-
-        
+        self.load_pipeline_template()
 
     def get_polygon_bounds(self, polygon: Polygon, epsg: str) -> tuple:
         """Extracts polygon bounds and assign polygon cropping bounds.
@@ -146,3 +145,60 @@ class DataFetcher():
             print('Region Not Available')
             # logger.error('Region Not Available')
             sys.exit()
+
+    def load_pipeline_template(self, file_name: str = './pipeline_template.json') -> None:
+        """Loads Pipeline Template to constructe Pdal Pipelines from.
+
+        Parameters
+        ----------
+        file_name : str, optional
+            Path plus file name of the pipeline template if the template is not located in its normal locations,
+            or if another template file is needed to be loaded
+
+        Returns
+        -------
+        None
+        """
+        try:
+            with open(file_name, 'r') as read_file:
+                template = json.load(read_file)
+
+            self.template_pipeline = template
+
+            print('Pipeline Template loaded successfully')
+            # logger.info('Successfully Loaded Pdal Pipeline Template')
+
+        except Exception as e:
+            print('Failed to Load Pipeline Template')
+            # logger.exception('Failed to Load Pdal Pipeline Template')
+            sys.exit(1)
+
+    def build_pipeline(self) -> None:
+        """Generates a generic Pdal pipeline.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        self.pipeline = []
+        reader = self.template_pipeline['reader']
+        reader['bounds'] = self.extraction_bounds
+        reader['filename'] = self.file_location
+        self.pipeline.append(reader)
+
+        cropper = self.template_pipeline['cropping_filter']
+        cropper['polygon'] = self.polygon_cropping
+        self.pipeline.append(cropper)
+
+        self.pipeline.append(self.template_pipeline['range_filter'])
+        self.pipeline.append(self.template_pipeline['assign_filter'])
+
+        reprojection = self.template_pipeline['reprojection_filter']
+        reprojection['out_srs'] = f"EPSG:{self.epsg}"
+        self.pipeline.append(reprojection)
+
+        self.pipeline = pdal.Pipeline(json.dumps(self.pipeline))
