@@ -61,7 +61,7 @@ def generate_dataset_metadata_json(directories_path: str = './data/region_list.t
 
     dataset_json = {}
 
-    with open('./filename.txt', 'r') as locations:
+    with open(directories_path, 'r') as locations:
         locations_list = locations.readlines()
 
     for index, location in enumerate(locations_list):
@@ -106,7 +106,7 @@ def generate_dataset_metadata_json(directories_path: str = './data/region_list.t
             continue
 
     if(save):
-        with open('./aws_dataset_info.json', 'w') as file_handler:
+        with open('./dataset_metadata.json', 'w') as file_handler:
             dump(dataset_json, file_handler, sort_keys=True, indent=4)
     print('Successfully generated Data Information JSON File')
 
@@ -242,7 +242,7 @@ def fix_bound_reptition_and_build_csv(json_data: dict, save: bool = True) -> pd.
     aws_dataset_df['Variations'] = len_list
 
     if(save):
-        aws_dataset_df.to_csv('./aws_dataset.csv')
+        aws_dataset_df.to_csv('./dataset_metadata.csv')
 
     print(
         'Successfully Generated CSV file from JSON file applying bound merge fixes')
