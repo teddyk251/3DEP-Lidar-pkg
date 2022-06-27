@@ -108,9 +108,11 @@ class DataFetcher():
         str
             Returns the same regions folder file name if it was successfully located
         """
-        with open('./filename.txt', 'r') as locations:
-            locations_list = locations.readlines()
-
+        with open('../data/region_list.txt', 'r') as locations:
+            locations_list = []
+            for location in locations:
+                locations_list.append(location.strip('\n').strip('/'))
+        # print(locations_list)
         if(region in locations_list):
             return region
         else:
@@ -165,7 +167,7 @@ class DataFetcher():
             # logger.error('Region Not Available')
             sys.exit()
 
-    def load_pipeline_template(self, file_name: str = './pipeline_template.json') -> None:
+    def load_pipeline_template(self, file_name: str = '../data/pipeline_template.json') -> None:
         """Loads Pipeline Template to constructe Pdal Pipelines from.
 
         Parameters
@@ -206,7 +208,7 @@ class DataFetcher():
         self.pipeline = []
         reader = self.template_pipeline['reader']
         reader['bounds'] = self.extraction_bounds
-        reader['filename'] = self.file_location
+        reader['filename'] = self.file_path
         self.pipeline.append(reader)
 
         cropper = self.template_pipeline['cropping_filter']
