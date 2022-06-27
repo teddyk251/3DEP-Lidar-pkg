@@ -16,9 +16,6 @@ Water is very important for crop growth and health. We can better predict maize 
 
 <hr>   
 
-<br/>
-<br/>
-
 
 
 # <a name='install'></a>Installation  
