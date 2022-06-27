@@ -73,8 +73,27 @@ class DataFetcher():
 
         except Exception as e:
             print(e)
-            # logger.exception(
-            #     'Failed to Extract Polygon Edges and Polygon Cropping Bounds')
+
+    def get_crop_polygon(self, polygon: Polygon) -> str:
+        """Calculates Polygons Cropping string used when building Pdal's crop pipeline.
+
+        Parameters
+        ----------
+        polygon: Polygon
+            Polygon object describing the boundary of the location required
+
+        Returns
+        -------
+        str
+            Cropping string used by Pdal's crop pipeline
+        """
+        polygon_cords = 'POLYGON(('
+        for i in list(polygon.exterior.coords):
+            polygon_cords += f'{i[0]} {i[1]},'
+
+        polygon_cords = polygon_cords[:-1] + '))'
+
+        return polygon_cords
 
     def check_region(self, region: str) -> str:
         """Checks if the given region is found in the AWS dataset.
@@ -202,3 +221,76 @@ class DataFetcher():
         self.pipeline.append(reprojection)
 
         self.pipeline = pdal.Pipeline(json.dumps(self.pipeline))
+
+    def create_cloud_points(self):
+        """Creates Cloud Points from the retrieved Pipeline Arrays consisting of other unwanted data.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        try:
+            cloud_points = []
+            for row in self.pipeline.arrays[0]:
+                lst = row.tolist()[-3:]
+                cloud_points.append(lst)
+
+            cloud_points = np.array(cloud_points)
+
+            self.cloud_points = cloud_points
+
+        except:
+            print('Failed to create cloud points')
+            sys.exit(1)
+
+    def fetch_data(self):
+        """Fetches Data from the AWS Dataset, builds the cloud points from it and 
+        assignes and stores the original cloud points and original elevation geopandas dataframe.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        try:
+            self.data_count = self.pipeline.execute()
+            self.create_cloud_points()
+            self.original_cloud_points = self.cloud_points
+            self.original_elevation_geodf = self.get_elevation_geodf()
+        except Exception as e:
+            sys.exit(1)
+
+    def get_elevation_geodf(self) -> gpd.GeoDataFrame:
+        """Calculates and returns a geopandas elevation dataframe from the cloud points generated before.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        gpd.GeoDataFrame
+            Geopandas Dataframe with Elevation and coordinate points referenced as Geometry points
+        """
+        elevation = gpd.GeoDataFrame()
+        elevations = []
+        points = []
+        for row in self.cloud_points:
+            elevations.append(row[2])
+            point = Point(row[0], row[1])
+            points.append(point)
+
+        elevation['elevation'] = elevations
+        elevation['geometry'] = points
+        elevation.set_crs(epsg=self.epsg, inplace=True)
+
+        self.elevation_geodf = elevation
+
+        return self.elevation_geodf
