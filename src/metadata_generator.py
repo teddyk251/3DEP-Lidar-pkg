@@ -113,7 +113,141 @@ def generate_dataset_metadata_json(directories_path: str = './data/region_list.t
     return dataset_json
 
 
+def get_values_list(json_data: dict) -> tuple:
+    """Deconstructs the given dictionary values into specific data information values within the dictionary.
 
+    Parameters
+    ----------
+    json_data : dict
+        Dictionary data from which the data informations are extracted from.
+
+    Returns
+    -------
+    tuple
+        Tuple of lists for each extracted informations.
+    """
+    try:
+        file_names = list(json_data.keys())
+        bounds_list = []
+        points_list = []
+        years_list = []
+        access_list = []
+        len_list = []
+        for value in json_data.values():
+            bounds_list.append(value['bounds'])
+            points_list.append(value['points'])
+            years_list.append(value['years'])
+            access_list.append(value['access_url'])
+            len_list.append(value['len'])
+
+        return_value = (file_names, bounds_list, points_list,
+                        years_list, access_list, len_list)
+
+        print('Successfully Retrieved Value Lists')
+
+    except Exception as e:
+        print('Failed to Retrieve Value Lists')
+
+    return return_value
+
+
+def merge_similar_bounds(json_data: dict, file_names: list, bounds_list: list) -> dict:
+    """Finds keys in a dictionary where there bounds are similar and merges them.
+
+    Parameters
+    ----------
+    json_data : dict
+        Dictionary data from which the data informations were extracted from.
+    file_names : list
+        Keys list extracted from the Dictionary
+    bounds_list : list
+        Bounds list extracted from the Dictionary
+
+    Returns
+    -------
+    dict
+        New Dictionary where files with similar bounds are merged together.
+    """
+    try:
+        new_json = copy.deepcopy(json_data)
+
+        check = []
+        similar_values = []
+
+        for index, i in enumerate(bounds_list):
+            if i in check:
+                similar_values.append([check.index(i), index])
+                print("actual first index:", check.index(
+                    i), "bound index value:", index)
+            else:
+                check.append(i)
+
+        for initial, later in similar_values:
+            main_json = new_json[file_names[initial]]
+            add_json = new_json[file_names[later]]
+
+            new_file_name = f'{file_names[initial]},{file_names[later]}'
+            new_file = {}
+            new_file['bounds'] = main_json['bounds']
+            new_file['years'] = main_json['years']
+            new_file['years'].extend(add_json['years'])
+            new_file['points'] = main_json['points']
+            new_file['points'].extend(add_json['points'])
+            new_file['access_url'] = main_json['access_url']
+            new_file['access_url'].extend(add_json['access_url'])
+            new_file['len'] = main_json['len'] + add_json['len']
+
+            del new_json[file_names[initial]]
+            del new_json[file_names[later]]
+
+            new_json[new_file_name] = new_file
+
+        print('Successfully merged files with related bounds')
+
+    except Exception as e:
+        print('Failed to merge bound related files')
+
+    return new_json
+
+
+def fix_bound_reptition_and_build_csv(json_data: dict, save: bool = True) -> pd.DataFrame:
+    """Fixes bound repition problems in a json files and builds a CSV representation of the JSON file.
+
+    Parameters
+    ----------
+    json_data : dict
+        Dictionary from which the CSV is built.
+    save : bool, optional
+        To save the generated CSV file with the name aws_dataset.csv in the current call path or not.
+
+    Returns
+    -------
+    pd.DataFrame
+        Pandas DataFrame representation of the JSON file with all bound similarities merged.
+    """
+    file_names, bounds_list, points_list, reprojection_list, schema_list, years_list, access_list, len_list = get_values_list(
+        json_data)
+
+    final_json = merge_similar_bounds(json_data, file_names, bounds_list)
+
+    file_names, bounds_list, points_list, years_list, access_list, len_list = get_values_list(
+        final_json)
+
+    aws_dataset_df = pd.DataFrame()
+    aws_dataset_df['Region/s'] = file_names
+    aws_dataset_df['Bound/s'] = bounds_list
+    aws_dataset_df['NumberOfPoints'] = points_list
+    aws_dataset_df['Year/s'] = years_list
+    aws_dataset_df['Access Url/s'] = access_list
+    aws_dataset_df['Variations'] = len_list
+
+    if(save):
+        aws_dataset_df.to_csv('./aws_dataset.csv')
+
+    print(
+        'Successfully Generated CSV file from JSON file applying bound merge fixes')
+
+    return aws_dataset_df
 
 
 if __name__ == "__main__":
