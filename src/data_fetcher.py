@@ -112,12 +112,10 @@ class DataFetcher():
             locations_list = []
             for location in locations:
                 locations_list.append(location.strip('\n').strip('/'))
-        # print(locations_list)
         if(region in locations_list):
             return region
         else:
             print("Region Not Available")
-            # logger.error('Region Not Available')
             sys.exit(1)
 
     def get_region_from_bounds(self, minx: float, miny: float, maxx: float, maxy: float, indx: int = 1) -> str:
@@ -142,7 +140,7 @@ class DataFetcher():
             Access url to retrieve the data from the AWS dataset
         """
 
-        aws_dataset_info_csv = pd.read_csv('./aws_dataset.csv')
+        aws_dataset_info_csv = pd.read_csv('../data/dataset_metadata.csv')
         for index, bound in enumerate(aws_dataset_info_csv['Bound/s'].to_list()):
             bound = bound.strip('][').replace(
                 ']', '').replace('[', '').split(',')
